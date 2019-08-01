@@ -253,6 +253,14 @@ void cursor_down(struct file_data *_file_state, char *_args) {
 	if(_file_state->cursor < 1)_file_state->cursor = 1;
 }
 
+void cursor_to(struct file_data *_file_state, char *_args) {
+	assert(_file_state);
+	int target_line = 0;
+	if(_args != NULL)target_line = atoi(_args);
+	if(target_line <= 0 || target_line > _file_state->line_count)return;
+	_file_state->cursor = target_line;
+}
+
 // new_line(_lines, _file_state, _args) Adds a new line after the cursor and if
 // the contents of [_args] into that new line
 // requires: _lines does not point to null
@@ -342,6 +350,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	char *show_cursor_cmd = "sc";
 	char *cursor_up_cmd = "cu";
 	char *cursor_down_cmd = "cd";
+	char *cursor_to_cmd = "ct";
 	char *new_line_cmd = "nl";
 	char *delete_line_cmd = "dl";
 	// char *add_line_cmd = "al";
@@ -358,6 +367,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	else if(strcmp(cmd, show_cursor_cmd) == 0)show_cursor(lines, _file_state, args);
 	else if(strcmp(cmd, cursor_up_cmd) == 0)cursor_up(_file_state, args);
 	else if(strcmp(cmd, cursor_down_cmd) == 0)cursor_down(_file_state, args);
+	else if(strcmp(cmd, cursor_to_cmd) == 0)cursor_to(_file_state, args);
 	else if(strcmp(cmd, new_line_cmd) == 0)new_line(_lines_head, _file_state, args);
 	else if(strcmp(cmd, delete_line_cmd) == 0)delete_line(_lines_head, _file_state);
 	else if(strcmp(cmd, save_cmd) == 0)save(_file, lines);
