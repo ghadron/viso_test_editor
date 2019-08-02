@@ -315,6 +315,21 @@ void delete_line(struct file_lines *_lines_head, struct file_data *_file_state) 
 	if(_file_state->cursor > _file_state->line_count)_file_state->cursor -= 1;
 }
 
+void line_count(struct file_data *_file_state) {
+	assert(_file_state);
+	printf("lc: %d\n", _file_state->line_count);
+}
+
+void char_count(struct file_lines *_lines) {
+	struct file_lines *cur_line = _lines;
+	int char_count_ = 0;
+	while(cur_line != NULL) {
+		char_count_ += strlen(cur_line->line);
+		cur_line = cur_line->nxt_line;
+	}
+	printf("cc: %d\n",char_count_ );
+}
+
 // save(_file, _lines) Writes all of [_lines] to the given [_file]
 // requires: _file does not point to null
 // 			 _lines does not point to null
@@ -353,9 +368,10 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	char *cursor_to_cmd = "ct";
 	char *new_line_cmd = "nl";
 	char *delete_line_cmd = "dl";
-	// char *add_line_cmd = "al";
 	// char *append_cursor_line_cmd = "ul";
 	// char *prepend_cursor_line_cmd = "pl";
+	char *line_count_cmd = "lc";
+	char *char_count_cmd = "cc";
 	char *save_cmd = "s";
 	char *quit_cmd = "q";
 
@@ -370,6 +386,8 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	else if(strcmp(cmd, cursor_to_cmd) == 0)cursor_to(_file_state, args);
 	else if(strcmp(cmd, new_line_cmd) == 0)new_line(_lines_head, _file_state, args);
 	else if(strcmp(cmd, delete_line_cmd) == 0)delete_line(_lines_head, _file_state);
+	else if(strcmp(cmd, line_count_cmd) == 0)line_count(_file_state);
+	else if(strcmp(cmd, char_count_cmd) == 0)char_count(lines);
 	else if(strcmp(cmd, save_cmd) == 0)save(_file, lines);
 	else if(strcmp(cmd, quit_cmd) != 0) printf("Could not find: %s\n", cmd);
 }
