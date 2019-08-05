@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
 #include <assert.h>
 
 #define INIT_LINE_SIZE 64
@@ -13,7 +15,6 @@ struct file_lines {
 struct file_data {
 	int cursor;
 	int line_count;
-	int char_count;
 };
 
 // init_file(_file_, _file_name) Opens or creates a file with the given file
@@ -88,10 +89,7 @@ void fill_file_lines(FILE *_file, struct file_lines *_lines_head, struct file_da
 			cur_line_size = INIT_LINE_SIZE;
 			line_ch_count = 0;
 			_file_state_->line_count += 1;
-		} else {
-			cur_line->line[line_ch_count++] = ch;
-			_file_state_->char_count += 1;
-		}
+		} else cur_line->line[line_ch_count++] = ch;
 		ch = fgetc(_file);
 	}
 	_file_state_->line_count += 1;
@@ -106,7 +104,7 @@ void fill_file_lines(FILE *_file, struct file_lines *_lines_head, struct file_da
 struct file_lines *init_file_lines(FILE *_file, struct file_data *_file_state_) {
 	assert(_file);
 	assert(_file_state_);
-	struct file_lines *lines_head_ = malloc(INIT_LINE_SIZE * sizeof(char) +
+	struct file_lines *lines_head_ = malloc(INIT_LINE_SIZE * sizeof(char) + 
 		sizeof(struct file_lines *));
 	lines_head_->line = malloc(INIT_LINE_SIZE * sizeof(char));
 	lines_head_->nxt_line = NULL;
@@ -189,9 +187,7 @@ void show_file(struct file_lines *_lines, struct file_data *_file_state) {
 	if(_lines) {
 		show_lines_in_range(_lines, _file_state, 1, 
 			_file_state->line_count + 1);
-	} else {
-		printf("1: \n");
-	}
+	} else printf("1. \n");
 
 }
 
@@ -207,11 +203,11 @@ void show_cursor(struct file_lines *_lines, struct file_data *_file_state, char 
 	if(_args != NULL)line_radius = atoi(_args);
 	if(line_radius < 0)line_radius = 0;
 	if(_file_state->line_count == 0){
-		printf("1: \n");
+		printf("1. \n");
 		return;
 	}
 	if(line_radius == 0){
-		printf("@: %s\n", get_cursor_line(_lines, _file_state->cursor)->line);
+		printf("@. %s\n", get_cursor_line(_lines, _file_state->cursor)->line);
 		return;
 	}
 	int lower_line = _file_state->cursor - line_radius;
@@ -315,11 +311,48 @@ void delete_line(struct file_lines *_lines_head, struct file_data *_file_state) 
 	if(_file_state->cursor > _file_state->line_count)_file_state->cursor -= 1;
 }
 
+// line_count(_file_state) Prints out the number of lines in the file
+// requires: _file_state does not point to null
+// effects: Prints out to the screen
 void line_count(struct file_data *_file_state) {
 	assert(_file_state);
-	printf("lc: %d\n", _file_state->line_count);
+	printf("lc. %d\n", _file_state->line_count);
 }
 
+bool is_word_char(char _letter) {
+	if(isalpha(_letter))return true;
+	else if(isdigit(_letter))return true;
+	else if(_letter == '_')return true;
+	else if(_letter == '-')return true;
+	else if(_letter == '\'')return true;
+	return false;
+}
+
+// word_count(_lines) Prints out the number of words in the file
+// requires: _lines does not point to null
+// effects Prints out to the screen
+void word_count(struct file_lines *_lines) {
+	struct file_lines *cur_line = _lines;
+	int word_count = 0;
+	bool word_char = false;
+	bool in_word = false;
+	while(cur_line != NULL) {
+		for(int i = 0; i < strlen(cur_line->line); i++) {
+			word_char = is_word_char(cur_line->line[i]);
+			if(!in_word && word_char){
+				word_count++;
+				in_word = true;
+			}
+			else if(in_word && !word_char)in_word = false;
+		}
+		cur_line = cur_line->nxt_line;
+	}
+	printf("wc. %d\n", word_count);
+}
+
+// char_count(_lines) Prints out the number of characters in the file
+// effects: Prints out to the screen
+// time: O(n) where n is the number of character in the files
 void char_count(struct file_lines *_lines) {
 	struct file_lines *cur_line = _lines;
 	int char_count_ = 0;
@@ -327,7 +360,7 @@ void char_count(struct file_lines *_lines) {
 		char_count_ += strlen(cur_line->line);
 		cur_line = cur_line->nxt_line;
 	}
-	printf("cc: %d\n",char_count_ );
+	printf("cc. %d\n",char_count_ );
 }
 
 // save(_file, _lines) Writes all of [_lines] to the given [_file]
@@ -371,6 +404,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	// char *append_cursor_line_cmd = "ul";
 	// char *prepend_cursor_line_cmd = "pl";
 	char *line_count_cmd = "lc";
+	char *word_count_cmd = "wc";
 	char *char_count_cmd = "cc";
 	char *save_cmd = "s";
 	char *quit_cmd = "q";
@@ -387,6 +421,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	else if(strcmp(cmd, new_line_cmd) == 0)new_line(_lines_head, _file_state, args);
 	else if(strcmp(cmd, delete_line_cmd) == 0)delete_line(_lines_head, _file_state);
 	else if(strcmp(cmd, line_count_cmd) == 0)line_count(_file_state);
+	else if(strcmp(cmd, word_count_cmd) == 0)word_count(lines);
 	else if(strcmp(cmd, char_count_cmd) == 0)char_count(lines);
 	else if(strcmp(cmd, save_cmd) == 0)save(_file, lines);
 	else if(strcmp(cmd, quit_cmd) != 0) printf("Could not find: %s\n", cmd);
@@ -415,7 +450,7 @@ void input_loop(FILE *_file, struct file_lines *_lines_head, struct file_data *_
 int main(int argc, char **argv) {
 	assert(argc > 1);
 	FILE *file;
-	struct file_data file_state = {1, 0, 0};
+	struct file_data file_state = {1, 0};
 	init_file(&file, argv[1], &file_state);
 	struct file_lines *lines_head = init_file_lines(file, &file_state);
 	input_loop(file, lines_head, &file_state);
