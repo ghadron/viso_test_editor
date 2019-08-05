@@ -175,6 +175,17 @@ void show_lines_in_range(struct file_lines *_lines, struct file_data *_file_stat
 	}
 }
 
+// is_word_char(_letter) Returns true is the given [_letter] is in the 
+// alphabet, number, underscore, dash or an apostrophe and false if not
+bool is_word_char(char _letter) {
+	if(isalpha(_letter))return true;
+	else if(isdigit(_letter))return true;
+	else if(_letter == '_')return true;
+	else if(_letter == '-')return true;
+	else if(_letter == '\'')return true;
+	return false;x
+}
+
 // show_file(_lines, _cursor_line) Prints each line of the given [_file_lines]
 // with a line number except the line which has the _cursor which will display
 // an @
@@ -319,15 +330,6 @@ void line_count(struct file_data *_file_state) {
 	printf("lc. %d\n", _file_state->line_count);
 }
 
-bool is_word_char(char _letter) {
-	if(isalpha(_letter))return true;
-	else if(isdigit(_letter))return true;
-	else if(_letter == '_')return true;
-	else if(_letter == '-')return true;
-	else if(_letter == '\'')return true;
-	return false;
-}
-
 // word_count(_lines) Prints out the number of words in the file
 // requires: _lines does not point to null
 // effects Prints out to the screen
@@ -457,3 +459,4 @@ int main(int argc, char **argv) {
 	close_file(file, lines_head);
 	return 0;
 }
+
