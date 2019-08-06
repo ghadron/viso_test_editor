@@ -82,8 +82,7 @@ void fill_file_lines(FILE *_file, struct file_lines *_lines_head, struct file_da
 		if(line_ch_count >= cur_line_size) {
 			cur_line = realloc(cur_line, 2 * sizeof(cur_line));
 			cur_line_size *= 2;
-		}
-		if(ch == '\n') {
+		} if(ch == '\n') {
 			append_new_line(cur_line);
 			cur_line = cur_line->nxt_line;
 			cur_line_size = INIT_LINE_SIZE;
@@ -177,13 +176,13 @@ void show_lines_in_range(struct file_lines *_lines, struct file_data *_file_stat
 
 // is_word_char(_letter) Returns true is the given [_letter] is in the 
 // alphabet, number, underscore, dash or an apostrophe and false if not
-bool is_word_char(char _letter) {
-	if(isalpha(_letter))return true;
-	else if(isdigit(_letter))return true;
-	else if(_letter == '_')return true;
-	else if(_letter == '-')return true;
-	else if(_letter == '\'')return true;
-	return false;x
+bool is_word_char(char _char) {
+	if(isalpha(_char))return true;
+	else if(isdigit(_char))return true;
+	else if(_char == '_')return true;
+	else if(_char == '-')return true;
+	else if(_char == '\'')return true;
+	return false;
 }
 
 // show_file(_lines, _cursor_line) Prints each line of the given [_file_lines]
@@ -199,7 +198,6 @@ void show_file(struct file_lines *_lines, struct file_data *_file_state) {
 		show_lines_in_range(_lines, _file_state, 1, 
 			_file_state->line_count + 1);
 	} else printf("1. \n");
-
 }
 
 // show_cursor(_lines, _file_state, _args) Prints the lines around the cursor
@@ -210,19 +208,19 @@ void show_file(struct file_lines *_lines, struct file_data *_file_state) {
 // effects: prints out to the screen
 void show_cursor(struct file_lines *_lines, struct file_data *_file_state, char *_args) {
 	assert(_file_state);
-	int line_radius = 0;
-	if(_args != NULL)line_radius = atoi(_args);
-	if(line_radius < 0)line_radius = 0;
+	int lines_radius = 0;
+	if(_args != NULL)lines_radius = atoi(_args);
+	if(lines_radius < 0)lines_radius = 0;
 	if(_file_state->line_count == 0){
 		printf("1. \n");
 		return;
 	}
-	if(line_radius == 0){
+	if(lines_radius == 0){
 		printf("@. %s\n", get_cursor_line(_lines, _file_state->cursor)->line);
 		return;
 	}
-	int lower_line = _file_state->cursor - line_radius;
-	int upper_line = _file_state->cursor + line_radius;
+	int lower_line = _file_state->cursor - lines_radius;
+	int upper_line = _file_state->cursor + lines_radius;
 	if(lower_line <= 0)lower_line = 1;
 	if(upper_line > _file_state->line_count) {
 		upper_line = _file_state->line_count + 1;
@@ -231,8 +229,8 @@ void show_cursor(struct file_lines *_lines, struct file_data *_file_state, char 
 }
 
 // cusor_up(_file_state, _args) Moves the cursor position up by the given 
-// number of lines, if there is no given number what is given is not a number
-// the cursor is not moved. 
+// number of lines, if there is no given number or what is given is not a
+// number the cursor is not moved. 
 // requires: _file_state does not point to null
 // effects: may modify _file_state
 void cursor_up(struct file_data *_file_state, char *_args) {
@@ -247,8 +245,8 @@ void cursor_up(struct file_data *_file_state, char *_args) {
 }
 
 // cursor_down(_file_state, _args) Moves the cursor position down by the given
-// number of lines, if there is no given number what is given is not a number
-// the cursor is not moved.
+// number of lines, if there is no given number or what is given is not a
+// number the cursor is not moved.
 // requires: _file_state does not point to null
 // effects: may modify _file_state
 void cursor_down(struct file_data *_file_state, char *_args) {
@@ -260,6 +258,11 @@ void cursor_down(struct file_data *_file_state, char *_args) {
 	if(_file_state->cursor < 1)_file_state->cursor = 1;
 }
 
+// cursor_to(_file_state, _args) Moves the cursor position to the given
+// line number, if there is no given number or what is given is not a
+// number the cursor is not moved. 
+// requires: _file_state does not point to null
+// effects: may modify _file_state
 void cursor_to(struct file_data *_file_state, char *_args) {
 	assert(_file_state);
 	int target_line = 0;
@@ -325,31 +328,30 @@ void delete_line(struct file_lines *_lines_head, struct file_data *_file_state) 
 // line_count(_file_state) Prints out the number of lines in the file
 // requires: _file_state does not point to null
 // effects: Prints out to the screen
-void line_count(struct file_data *_file_state) {
-	assert(_file_state);
-	printf("lc. %d\n", _file_state->line_count);
+void line_count(struct file_data *_file_state_) {
+	assert(_file_state_);
+	printf("lc. %d\n", _file_state_->line_count);
 }
 
 // word_count(_lines) Prints out the number of words in the file
-// requires: _lines does not point to null
 // effects Prints out to the screen
 void word_count(struct file_lines *_lines) {
 	struct file_lines *cur_line = _lines;
-	int word_count = 0;
+	int word_count_ = 0;
 	bool word_char = false;
 	bool in_word = false;
 	while(cur_line != NULL) {
 		for(int i = 0; i < strlen(cur_line->line); i++) {
 			word_char = is_word_char(cur_line->line[i]);
 			if(!in_word && word_char){
-				word_count++;
+				word_count_++;
 				in_word = true;
 			}
 			else if(in_word && !word_char)in_word = false;
 		}
 		cur_line = cur_line->nxt_line;
 	}
-	printf("wc. %d\n", word_count);
+	printf("wc. %d\n", word_count_);
 }
 
 // char_count(_lines) Prints out the number of characters in the file
@@ -362,15 +364,13 @@ void char_count(struct file_lines *_lines) {
 		char_count_ += strlen(cur_line->line);
 		cur_line = cur_line->nxt_line;
 	}
-	printf("cc. %d\n",char_count_ );
+	printf("cc. %d\n", char_count_);
 }
 
 // save(_file, _lines) Writes all of [_lines] to the given [_file]
 // requires: _file does not point to null
-// 			 _lines does not point to null
 void save(FILE *_file, struct file_lines *_lines) {
 	assert(_file);
-	assert(_lines);
 	freopen(NULL, "w+", _file);
 	struct file_lines *cur_line = _lines;
 	char *new_line = "\n";
