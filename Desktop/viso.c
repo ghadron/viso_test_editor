@@ -122,6 +122,7 @@ void close_file(FILE *_file, struct file_lines *_lines_head) {
 	struct file_lines *cur_line = _lines_head;
 	struct file_lines *nxt_line = cur_line->nxt_line;
 	while(cur_line != NULL) {
+		printf("::%p::\n", cur_line);
 		free(cur_line->line);
 		free(cur_line);
 		cur_line = nxt_line;
@@ -133,6 +134,7 @@ void close_file(FILE *_file, struct file_lines *_lines_head) {
 // get_cursor_line(_lines, _cursor_line) Returns the pointer to the file_line
 // struct where the cursor is
 // requires: _lines does not point to null
+// 					must be pointed to file a file_head
 //			 _cursor_line > 0
 struct file_lines *get_cursor_line(struct file_lines *_lines, int _cursor_line) {
 	assert(_cursor_line > 0);
@@ -314,10 +316,9 @@ void delete_line(struct file_lines *_lines_head, struct file_data *_file_state) 
 		prev_cursor_line->nxt_line = cursor_line->nxt_line;
 		free(cursor_line->line);
 		free(cursor_line);
-	}
-	else {
+	} else {
 		struct file_lines *delete_line = _lines_head->nxt_line;
-		_lines_head->nxt_line = NULL;
+		_lines_head->nxt_line = delete_line->nxt_line;
 		free(delete_line->line);
 		free(delete_line);
 	}
@@ -346,8 +347,7 @@ void word_count(struct file_lines *_lines) {
 			if(!in_word && word_char){
 				word_count_++;
 				in_word = true;
-			}
-			else if(in_word && !word_char)in_word = false;
+			} else if(in_word && !word_char)in_word = false;
 		}
 		cur_line = cur_line->nxt_line;
 	}
@@ -403,6 +403,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	char *cursor_to_cmd = "ct";
 	char *new_line_cmd = "nl";
 	char *delete_line_cmd = "dl";
+	// char *replace_line_cmd = "rl";
 	// char *append_cursor_line_cmd = "ul";
 	// char *prepend_cursor_line_cmd = "pl";
 	char *line_count_cmd = "lc";
@@ -422,6 +423,7 @@ void cmd_processor(FILE *_file, struct file_lines *_lines_head, struct file_data
 	else if(strcmp(cmd, cursor_to_cmd) == 0)cursor_to(_file_state, args);
 	else if(strcmp(cmd, new_line_cmd) == 0)new_line(_lines_head, _file_state, args);
 	else if(strcmp(cmd, delete_line_cmd) == 0)delete_line(_lines_head, _file_state);
+	// else if(strcmp(cmd, replace_line_cmd) == 0)replace_line(_lines_head, _file_state, args);
 	else if(strcmp(cmd, line_count_cmd) == 0)line_count(_file_state);
 	else if(strcmp(cmd, word_count_cmd) == 0)word_count(lines);
 	else if(strcmp(cmd, char_count_cmd) == 0)char_count(lines);
